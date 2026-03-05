@@ -1,5 +1,5 @@
 // Setting up STM32
-#include "MultiStepperLite-main/src//MultiStepperLite.h"
+#include "lib/MultiStepperLite-main/src/SingleStepperLite.h"
 #include "mbed.h"
 #include <sys>
 #include <math.h>
