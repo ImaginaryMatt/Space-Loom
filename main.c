@@ -56,6 +56,7 @@ void SystemClock_Config(void);
 void PeriphCommonClock_Config(void);
 void MX_USB_HOST_Process(void);
 
+
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -141,6 +142,9 @@ int main(void)
 
   /* Configure the peripherals common clocks */
   PeriphCommonClock_Config();
+
+ SignalSequence_InitTimer();
+Run_Signal_Sequence();
 
   /* USER CODE BEGIN SysInit */
 
@@ -294,4 +298,5 @@ void assert_failed(uint8_t *file, uint32_t line)
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
+
 
