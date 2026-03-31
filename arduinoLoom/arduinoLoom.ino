@@ -2,12 +2,17 @@
 #include <Arduino.h>
 #include <Servo.h>
 #include <AccelStepper.h>
+#include <IRremote.hpp>
 
 // // Define pins for 4 stepper motors
 // #define STEP_PIN 2
 // #define DIR_PIN 3
 // #define ENABLE_PIN 4
 
+
+// Define pins for IR receiver
+const int IR_PIN =  52; // IR receiver connected to pin 52
+IRrecv irrecv(IR_PIN);
 
 // // Define pins for servo motor
 // #define _RAPIER 5
@@ -45,8 +50,8 @@ Servo ServoFar;
 
 
 const int SERVO_RAPIER_PIN = 9;   // Signal wire connected to pin 9
-const int SERVO_CLOSE_PIN = 10;  // Signal wire connected to pin 10
-const int SERVO_FAR_PIN = 11;    // Signal wire connected to pin 11
+const int SERVO_CLOSE_PIN = 5;  // Signal wire connected to pin 10
+const int SERVO_FAR_PIN = 7;    // Signal wire connected to pin 11
 String inputString = "";
 bool inputComplete = false;
 
@@ -76,9 +81,24 @@ void setup() {
   
   
  ServoRapier.write(0); // Start at 0 degrees
+
+  // Initialize IR receiver
+ pinMode(IR_PIN, INPUT);
+ Serial.println("IR Receiver Ready");
+  irrecv.enableIRIn(); // Start the IR receiver
+      IrReceiver.begin(IR_PIN, ENABLE_LED_FEEDBACK);
+ 
+
 }
 
 void loop() {
+  // Read IR remote input and decide which motor to control based on the value received
+  int case = readIrRemote();
+  switch (case) {
+  case 1: // Rapier Motor
+   
+  }  break;
+  
   if (Serial.available()) {
     char c = Serial.read();
 
@@ -111,13 +131,13 @@ void loop() {
       stepper2.setSpeed(500);
 
       unsigned long startTime = millis();
-      while (millis() - startTime < 2800) {
+      while (millis() - startTime < (2800 -200)) {
         stepper1.runSpeed();
         stepper2.runSpeed();
       }
 
       stepper1.setSpeed(0);
-      stepper2.setSpeed(0);
+      stepper2.setSpeed(0);``
 
       Serial.println("Done");
     }
@@ -145,16 +165,8 @@ void loop() {
   stepper2.runSpeed();
   stepper3.runSpeed();
   stepper4.runSpeed();
-}
 
-
-
-
-
-
-
-void loop() {
-  if (inputComplete) {
+    if (inputComplete) {
     inputString.trim();  // Remove spaces/newlines
 
     if (inputString.length() > 0) {
@@ -175,6 +187,7 @@ void loop() {
   }
 }
 
+
 void serialEvent() {
   while (Serial.available()) {
     char inChar = (char)Serial.read();
@@ -185,4 +198,28 @@ void serialEvent() {
       inputString += inChar;
     }
   }
+}
+
+
+int readIrRemote() {
+  // if (irrecv.decode(&results)) {
+  //   int value = results.value;
+  //   irrecv.resume(); // Receive the next value
+    
+  //   return value;
+  // }
+  // return -1; // No value received
+
+  if (IrReceiver.decode()) {
+      int value = IrReceiver.decodedIRData.decodedRawData; // Print "old" raw data
+      Serial.println(value);
+      IrReceiver.printIRResultShort(&Serial); // Print complete received data in one line
+      IrReceiver.printIRSendUsage(&Serial);   // Print the statement required to send this data
+      ...
+      IrReceiver.resume(); // Enable receiving of the next value
+      return value;
+      
+  }
+  ... // Other code
+  return -1; // No value received
 }
