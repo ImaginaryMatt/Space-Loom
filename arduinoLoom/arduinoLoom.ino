@@ -2,20 +2,10 @@
 #include <Arduino.h>
 #include <Servo.h>
 #include <AccelStepper.h>
-#include <IRremote.hpp>
-
-// // Define pins for 4 stepper motors
-// #define STEP_PIN 2
-// #define DIR_PIN 3
-// #define ENABLE_PIN 4
-
+#include <IRremote.h>
 
 // Define pins for IR receiver
-const int IR_PIN =  52; // IR receiver connected to pin 52
-IRrecv irrecv(IR_PIN);
-
-// // Define pins for servo motor
-// #define _RAPIER 5
+const int IR_PIN =  2; // IR receiver connected to pin 52
 
 // -------- Motor 1 --------
 const int STEP1 = 48;
@@ -33,6 +23,16 @@ const int DIR3 = 39;
 const int STEP4 = 36;
 const int DIR4 = 35;
 
+// Define Position Constants for Motors
+const int Open = 180;
+const int Close = 20;
+const int BeatUpSpeed = 500;
+const int BeatUpDist = 2000;
+const int RapierSpeed = 1000;
+const int RapierOut = 1600;
+const int RapierIn = 1800;
+const int RapierFull = 3400;
+
 // Create stepper objects
 AccelStepper stepper1(AccelStepper::DRIVER, STEP1, DIR1);
 AccelStepper stepper2(AccelStepper::DRIVER, STEP2, DIR2);
@@ -45,10 +45,6 @@ Servo ServoClose;
 Servo ServoFar;
 
 // Predeclaration of fuctions
-
-
-
-
 const int SERVO_RAPIER_PIN = 9;   // Signal wire connected to pin 9
 const int SERVO_CLOSE_PIN = 5;  // Signal wire connected to pin 10
 const int SERVO_FAR_PIN = 7;    // Signal wire connected to pin 11
@@ -57,37 +53,37 @@ bool inputComplete = false;
 
 
 void setup() {
+  // Initialize Serial Port
   Serial.begin(115200);
+  Serial.println("Serial Port Ready");
 
+  // Initialize Servo Motors
   stepper1.setMaxSpeed(1000);
   stepper2.setMaxSpeed(1000);
   stepper3.setMaxSpeed(1000);
   stepper4.setMaxSpeed(1000);
-
   stepper1.setSpeed(0);
   stepper2.setSpeed(0);
   stepper3.setSpeed(0);
   stepper4.setSpeed(0);
-
   Serial.println("Stepper Motors Ready");
-
+  
   // Initialize servos
- ServoRapier.attach(SERVO_RAPIER_PIN);
- ServoClose.attach(SERVO_CLOSE_PIN);
- ServoFar.attach(SERVO_FAR_PIN);
-
+  ServoRapier.attach(SERVO_RAPIER_PIN);
+  ServoClose.attach(SERVO_CLOSE_PIN);
+  ServoFar.attach(SERVO_FAR_PIN);
+  ServoRapier.write(0); // Start at 0 degrees
+  ServoClose.write(0); // Start at 0 degrees
+  ServoFar.write(0); // Start at 0 degrees
   Serial.println("Servo control ready.");
-  Serial.println("Enter an angle from 0 to 180, then press Enter:");
   
-  
- ServoRapier.write(0); // Start at 0 degrees
-
+  // Declare IR Receiver
+  IrReceiver.begin(IR_PIN, DISABLE_LED_FEEDBACK);
   // Initialize IR receiver
- pinMode(IR_PIN, INPUT);
- Serial.println("IR Receiver Ready");
+  pinMode(IR_PIN, INPUT);
+  Serial.println("IR Receiver Ready");
   irrecv.enableIRIn(); // Start the IR receiver
-      IrReceiver.begin(IR_PIN, ENABLE_LED_FEEDBACK);
- 
+  IrReceiver.begin(IR_PIN, ENABLE_LED_FEEDBACK);
 
 }
 
@@ -95,129 +91,120 @@ void loop() {
   // Read IR remote input and decide which motor to control based on the value received
   int button = readIrRemote();
   switch (button) {
-  case 1: // Rapier Motor
-   
+      case 8: // Open Rapier Grabber
+      // Open Servo Rapier
+      ServoRapier.write(Open);
+      break;
+      case 66:
+      // Close Servo Rapier
+      ServoRapier.write(Close);
+      break;
+      case 28:
+      // Open Near Grabber
+      ServoRapier.write(Open);
+      break;
+      case 82;
+      // Close Near Grabber
+      ServoClose.write(Close);
+      break;
+      case 90:
+      // Open Far Grabber
+      ServoClose.write(Open);
+      break;
+      case 74;
+      // Close Far Grabber
+      ServoFar.write(Close);
+      break;
+      case 22:
+      // Rapier Stepper Motor Out Full
+      stepper3.setSpeed(RapierSpeed);
+      unsigned long startTime = millis();
+      while (millis() - startTime < RapierFull) {
+        stepper3.runSpeed();
+      }
+      stepper3.setSpeed(0);
+      stepper3.runSpeed();
+      break;
+      case 12;
+      // Rapier Stepper Motor In Full
+      stepper3.setSpeed(-RapierSpeed);
+      unsigned long startTime = millis();
+      while (millis() - startTime < RapierFull) {
+        stepper3.runSpeed();
+      }
+      stepper3.setSpeed(0);
+      stepper3.runSpeed();
+      break;
+      case 25:
+      // Rapier OUT -> Home
+      stepper3.setSpeed(-RapierSpeed);
+      unsigned long startTime = millis();
+      while (millis() - startTime < RapierOut) {
+        stepper3.runSpeed();
+      }
+      stepper3.setSpeed(0);
+      stepper3.runSpeed();
+      break;
+      case 24;
+      // Rapier IN -> Home
+      stepper3.setSpeed(RapierSpeed);
+      unsigned long startTime = millis();
+      while (millis() - startTime < RapierIn) {
+        stepper3.runSpeed();
+      }
+      stepper3.setSpeed(0);
+      stepper3.runSpeed();
+      break;
+      case 13:
+      // Rapier Home -> OUT
+      stepper3.setSpeed(RapierSpeed);
+      unsigned long startTime = millis();
+      while (millis() - startTime < RapierOut) {
+        stepper3.runSpeed();
+      }
+      stepper3.setSpeed(0);
+      stepper3.runSpeed();
+      break;
+      case 94;
+      // Rapier Home -> IN
+      stepper3.setSpeed(-RapierSpeed);
+      unsigned long startTime = millis();
+      while (millis() - startTime < RapierIn) {
+        stepper3.runSpeed();
+      }
+      stepper3.setSpeed(0);
+      stepper3.runSpeed();
+      break;
+      case 64:
+      // Continuous Operation
   
-  if (Serial.available()) {
-    char c = Serial.read();
-
-    // -------- Forward --------
-    if (c == 'f') {
-      stepper3.setSpeed(-500);
-      stepper4.setSpeed(500);
-      Serial.println("Forward");
-    }
-
-    // -------- Backward --------
-    else if (c == 'b') {
-      stepper3.setSpeed(500);
-      stepper4.setSpeed(-500);
-      Serial.println("Backward");
-    }
-
-    // -------- Stop --------
-    else if (c == 's') {
+      break;
+      case 68;
+      // Pause Continuous Operation - Return to Home
+  
+      break;
+      case 71:
+      // EMERGENCY - Stop all Motors
+      stepper1.setSpeed(0);
+      stepper2.setSpeed(0);
       stepper3.setSpeed(0);
       stepper4.setSpeed(0);
-      Serial.println("Stop");
-    }
-
-    // -------- Run both for 1 second --------
-    else if (c == 't') {
-      Serial.println("Run both motors");
-
-      stepper1.setSpeed(500);
-      stepper2.setSpeed(500);
-
-      unsigned long startTime = millis();
-      while (millis() - startTime < (2800 -200)) {
-        stepper1.runSpeed();
-        stepper2.runSpeed();
-      }
-
-      stepper1.setSpeed(0);
-      stepper2.setSpeed(0);
-
-      Serial.println("Done");
-    }
-    else if (c == 'r') {
-      Serial.println("Run both motors");
-
-      stepper1.setSpeed(-500);
-      stepper2.setSpeed(-500);
-
-      unsigned long startTime = millis();
-      while (millis() - startTime < 2800) {
-        stepper1.runSpeed();
-        stepper2.runSpeed();
-      }
-
-      stepper1.setSpeed(0);
-      stepper2.setSpeed(0);
-
-      Serial.println("Done");
-  }
-
-  // Always run both motors
-  stepper1.runSpeed();
-  stepper2.runSpeed();
-  stepper3.runSpeed();
-  stepper4.runSpeed();
-
-    if (inputComplete) {
-    inputString.trim();  // Remove spaces/newlines
-
-    if (inputString.length() > 0) {
-      int angle = inputString.toInt();
-
-      if (angle >= 0 && angle <= 180) {
-     ServoRapier.write(angle);
-        Serial.print("Moved servo to: ");
-        Serial.print(angle);
-        Serial.println(" degrees");
-      } else {
-        Serial.println("Invalid angle. Enter a value from 0 to 180.");
-      }
-    }
-
-    inputString = "";
-    inputComplete = false;
+      stepper1.runSpeed();
+      stepper2.runSpeed();
+      stepper3.runSpeed();
+      stepper4.runSpeed();
+      break;
+      default;
+      // Nothing right now
+      break;
   }
 }
-
-
-void serialEvent() {
-  while (Serial.available()) {
-    char inChar = (char)Serial.read();
-
-    if (inChar == '\n') {
-      inputComplete = true;
-    } else if (inChar != '\r') {
-      inputString += inChar;
-    }
-  }
-}
-
 
 int readIrRemote() {
-  // if (irrecv.decode(&results)) {
-  //   int value = results.value;
-  //   irrecv.resume(); // Receive the next value
-    
-  //   return value;
-  // }
-  // return -1; // No value received
-
   if (IrReceiver.decode()) {
-      int value = IrReceiver.decodedIRData.decodedRawData; // Print "old" raw data
-      Serial.println(value);
-      IrReceiver.printIRResultShort(&Serial); // Print complete received data in one line
-      IrReceiver.printIRSendUsage(&Serial);   // Print the statement required to send this data
-      //...
-      IrReceiver.resume(); // Enable receiving of the next value
-      return value;
-      
+    int value = IrReceiver.decodedIRData.command;
+    IrReceiver.resume();
+    return value;
   }
-  //... // Other code
-  return -1; // No value received
+  return -1;
 }
