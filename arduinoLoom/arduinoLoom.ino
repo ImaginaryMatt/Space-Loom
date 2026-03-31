@@ -93,11 +93,10 @@ void setup() {
 
 void loop() {
   // Read IR remote input and decide which motor to control based on the value received
-  int case = readIrRemote();
-  switch (case) {
+  int button = readIrRemote();
+  switch (button) {
   case 1: // Rapier Motor
    
-  }  break;
   
   if (Serial.available()) {
     char c = Serial.read();
@@ -137,7 +136,7 @@ void loop() {
       }
 
       stepper1.setSpeed(0);
-      stepper2.setSpeed(0);``
+      stepper2.setSpeed(0);
 
       Serial.println("Done");
     }
@@ -157,7 +156,6 @@ void loop() {
       stepper2.setSpeed(0);
 
       Serial.println("Done");
-    }
   }
 
   // Always run both motors
@@ -215,11 +213,11 @@ int readIrRemote() {
       Serial.println(value);
       IrReceiver.printIRResultShort(&Serial); // Print complete received data in one line
       IrReceiver.printIRSendUsage(&Serial);   // Print the statement required to send this data
-      ...
+      //...
       IrReceiver.resume(); // Enable receiving of the next value
       return value;
       
   }
-  ... // Other code
+  //... // Other code
   return -1; // No value received
 }
