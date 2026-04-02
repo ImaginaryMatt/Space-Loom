@@ -2,6 +2,9 @@
 #include <Servo.h>
 #include <AccelStepper.h>
 #include <IRremote.hpp>
+#include <Bounce2.h>
+
+Bounce2::Button button = Bounce2::Button(); // INSTANTIATE A Bounce2::Button OBJECT
 
 // Define pins for IR receiver
 const int IR_PIN = 2;
