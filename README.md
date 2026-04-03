@@ -11,8 +11,8 @@ https://github.com/gunakkoc/MultiStepperLite#
 
 # Collaborators
 Matthew Fisher - fisher.1432@osu.edu
-Tyler Smith - 
-Hayden Morrison - 
+Tyler Smith - smith.14763@osu.edu
+Hayden Morrison - morrison.949@osu.edu
 Ben Dobo - dobo.1@osu.edu
 Isaac Appiah-Boateng - appiah-boateng.3@osu.edu
 Varsha Venkateshwaran - venkateshwaran.4@osu.edu
